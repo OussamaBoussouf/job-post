@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
-import logo from "../../../assets/img/logo.png";
+import logo from "@/assets/img/logo.png";
+import Wrapper from "@/components/Wrapper";
 
 function Navbar() {
   return (
-    <nav>
-      <div className="max-w-[1200px] mx-auto">
+    <nav className="mb-5 px-4">
+      <Wrapper>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img src={logo} alt="logo" width="50" />
@@ -12,7 +13,7 @@ function Navbar() {
           </div>
           <Button type="button">Post a job</Button>
         </div>
-      </div>
+      </Wrapper>
     </nav>
   );
 }

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Input } from "../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "./ui/checkbox";
+import { Checkbox } from "../../../components/ui/checkbox";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -32,7 +32,7 @@ function FilterJobWidget() {
 
   return (
     <Form {...form}>
-      <form>
+      <form className="border-[1px] mb-4 p-3 sticky top-0 rounded-md md:basis-1/4">
         <FormField
           control={form.control}
           name="search"
@@ -99,7 +99,9 @@ function FilterJobWidget() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">Filter jobs</Button>
+        <Button type="submit" className="w-full">
+          Filter jobs
+        </Button>
       </form>
     </Form>
   );
