@@ -32,7 +32,7 @@ function FilterJobWidget() {
 
   return (
     <Form {...form}>
-      <form className="border-[1px] mb-4 p-3 sticky top-0 rounded-md md:basis-1/4">
+      <form className="bg-white border-[1px] mb-4 p-3 sticky top-0 rounded-md md:basis-1/4">
         <FormField
           control={form.control}
           name="search"
@@ -59,8 +59,11 @@ function FilterJobWidget() {
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="full-time">Full-time</SelectItem>
-                  <SelectItem value="internship">Internship</SelectItem>
                   <SelectItem value="part-time">Part-time</SelectItem>
+                  <SelectItem value="contract">Contract</SelectItem>
+                  <SelectItem value="temporary">Temporary</SelectItem>
+                  <SelectItem value="internship">Internship</SelectItem>
+                  <SelectItem value="volunteer">Volunteer</SelectItem>
                 </SelectContent>
               </Select>
             </FormItem>
