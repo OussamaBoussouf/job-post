@@ -1,6 +1,6 @@
-import Footer from "./Footer";
+import Footer from "../layouts/Footer";
 import MainContent from "./MainContent";
-import Navbar from "./Navbar";
+import Navbar from "../layouts/Navbar";
 
 const Home = () => {
   return (

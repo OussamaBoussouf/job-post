@@ -8,7 +8,7 @@ function MainContent() {
     <main className="py-5 px-4">
       <Wrapper>
         <div className="mb-10">
-          <h1 className="text-center font-extrabold text-3xl mb-4 md:text-4xl">
+          <h1 className="text-center font-extrabold text-3xl mb-4 md:text-5xl">
             All developer jobs
           </h1>
           <p className="text-center text-gray-400">Find your dream job.</p>
