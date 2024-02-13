@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
+import Tiptap from "./Tiptap";
 
 function JobForm() {
   const form = useForm();
@@ -166,7 +167,7 @@ function JobForm() {
                 <FormItem className="mb-3">
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea {...field}/>
+                    <Tiptap/>
                   </FormControl>
                 </FormItem>
               )}
@@ -184,7 +185,6 @@ function JobForm() {
                 </FormItem>
               )}
             />
-
             <Button type="submit">
               Submit
             </Button>
