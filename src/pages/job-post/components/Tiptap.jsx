@@ -12,7 +12,7 @@ import ListItem from "@tiptap/extension-list-item";
 import OrderedList from "@tiptap/extension-ordered-list";
 import Underline from "@tiptap/extension-underline";
 import BulletList from "@tiptap/extension-bullet-list";
-import Focus from '@tiptap/extension-focus';
+import Focus from "@tiptap/extension-focus";
 import {
   GoBold,
   GoItalic,
@@ -23,7 +23,7 @@ import { RiUnderline } from "react-icons/ri";
 
 // define your extension array
 
-function Tiptap() {
+function Tiptap({ handleChange }) {
   const editor = useEditor({
     extensions: [
       Document,
@@ -40,21 +40,19 @@ function Tiptap() {
       ,
       ListItem,
       OrderedList.configure({
-        HTMLAttributes:{
+        HTMLAttributes: {
           class: "list-decimal ps-5 my-2",
-        }
+        },
       }),
     ],
-    content: `
-          <p>
-            Hey, try to select some text here. There will popup a menu for selecting some inline styles. Remember: you have full control about content and styling of this menu.
-          </p>
-        `,
+    content: ``,
   });
 
   if (!editor) {
     return null;
   }
+
+  
 
   return (
     <>
@@ -77,7 +75,11 @@ function Tiptap() {
             type="button"
             onClick={() => editor.chain().focus().toggleItalic().run()}
             disabled={!editor.can().chain().focus().toggleItalic().run()}
-            className={editor.isActive("italic") ? "bg-red-600" : "text-black bg-transparent border-[1px]"}
+            className={
+              editor.isActive("italic")
+                ? "bg-red-600"
+                : "text-black bg-transparent border-[1px]"
+            }
             value="italic"
           >
             <GoItalic />
@@ -86,7 +88,11 @@ function Tiptap() {
             type="button"
             onClick={() => editor.chain().focus().toggleUnderline().run()}
             disabled={!editor.can().chain().focus().toggleUnderline().run()}
-            className={editor.isActive("underline") ? "bg-red-600" : "text-black bg-transparent border-[1px]"}
+            className={
+              editor.isActive("underline")
+                ? "bg-red-600"
+                : "text-black bg-transparent border-[1px]"
+            }
             value="underline"
           >
             <RiUnderline />
@@ -94,7 +100,11 @@ function Tiptap() {
           <Button
             type="button"
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            className={editor.isActive("orderedList") ? "bg-red-600" : "text-black bg-transparent border-[1px]"}
+            className={
+              editor.isActive("orderedList")
+                ? "bg-red-600"
+                : "text-black bg-transparent border-[1px]"
+            }
             value="ordered-list"
           >
             <GoListOrdered className="text-lg" />
@@ -113,7 +123,9 @@ function Tiptap() {
           </Button>
         </div>
       </div>
-      <EditorContent className="p-3 border-[1px] rounded-lg" editor={editor} />
+      <EditorContent onBlur={() => {
+        handleChange(editor.getHTML());
+      }}  className="p-3 border-[1px] rounded-lg" editor={editor} />
     </>
   );
 }
