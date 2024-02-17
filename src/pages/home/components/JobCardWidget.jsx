@@ -42,7 +42,7 @@ function JobCardWidget({image,company, position, officeLocation, location, jobTy
         </div>
       </div>
       <div className="hidden text-gray-600 sm:block sm:space-y-20">
-        <div className="bg-gray-200 border-[1px] py-1 px-2 rounded-md">{jobType}</div>
+        <div className="bg-gray-200 py-1 px-2 text-center rounded-md">{jobType}</div>
         <div className="flex items-center">
           <IoTimeOutline className="me-1 text-lg" /> 1 day ago
         </div>
