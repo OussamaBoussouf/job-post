@@ -1,17 +1,18 @@
 import Footer from "../layouts/Footer";
-import MainContent from "./MainContent";
 import Navbar from "../layouts/Navbar";
+import Main from "./MainContent";
 
-const Home = () => {
+function JobDetails() {
+
   return (
     <>
       <Navbar />
       <hr />
-      <MainContent />
+      <Main />
       <hr />
       <Footer />
     </>
   );
-};
+}
 
-export default Home;
+export default JobDetails;

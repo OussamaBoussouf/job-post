@@ -2,8 +2,117 @@ import FilterJobWidget from "@/pages/home/components/FilterJobWidget";
 import Wrapper from "@/components/Wrapper";
 import JobCardWidget from "./components/JobCardWidget";
 import PaginationWidget from "./components/PaginationWidget";
+import { db, storage } from "@/firebaseStore";
+import { useEffect, useState } from "react";
+import {
+  collection,
+  endBefore,
+  getCountFromServer,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  startAfter,
+  startAt,
+} from "firebase/firestore";
+import { getDownloadURL, ref } from "firebase/storage";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+
+const jobsRef = collection(db, "jobs");
 
 function MainContent() {
+  let navigate = useNavigate();
+  const [allJobs, setAllJobs] = useState([]);
+  const [searchParams] = useSearchParams();
+  const [firstLastJob, setFirstLastJob] = useState({
+    firstJobs: [],
+    lastJobs: [],
+  });
+  const [totalPage, setTotalPage] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const jobs = [];
+      try {
+        const first = query(jobsRef, orderBy("timeStamp"), limit(4));
+        const snapshot = await getCountFromServer(jobsRef);
+        const documentSnapshots = await getDocs(first);
+        documentSnapshots.forEach((doc) => {
+          jobs.push({ ...doc.data(), id: doc.id });
+        });
+        const lastVisible =
+          documentSnapshots.docs[documentSnapshots.docs.length - 1];
+        const firstVisible = documentSnapshots.docs[0];
+        setTotalPage(Math.ceil(snapshot.data().count / 4));
+        setAllJobs(jobs);
+        setFirstLastJob({
+          firstJobs: [firstVisible],
+          lastJobs: [lastVisible],
+        });
+      } catch (error) {
+        console.error("An Error Occured: ", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const getNextJobs = async () => {
+    const jobs = [];
+    try {
+      const next = query(
+        jobsRef,
+        orderBy("timeStamp"),
+        startAfter(firstLastJob.lastJobs[firstLastJob.lastJobs.length - 1]),
+        limit(4)
+      );
+      const documentSnapshots = await getDocs(next);
+      documentSnapshots.forEach((doc) => {
+        jobs.push({ ...doc.data(), id: doc.id });
+      });
+      const lastVisible =
+        documentSnapshots.docs[documentSnapshots.docs.length - 1];
+      const firstVisible = documentSnapshots.docs[0];
+      setAllJobs(jobs);
+      setCurrentPage(currentPage + 1);
+      setFirstLastJob({
+        ...firstLastJob,
+        lastJobs: [...firstLastJob.lastJobs, lastVisible],
+        firstJobs: [...firstLastJob.firstJobs, firstVisible],
+      });
+      console.log("Next Job");
+    } catch (error) {
+      console.error("Error occured: ", error);
+    }
+  };
+  
+  const getPreviousJobs = async () => {
+    setFirstLastJob((prev) => {
+      prev.firstJobs.pop();
+      prev.lastJobs.pop();
+      return prev
+    });
+    const jobs = [];
+    try {
+        const previous = query(
+        jobsRef,
+        orderBy("timeStamp"),
+        startAt(firstLastJob.firstJobs[firstLastJob.firstJobs.length - 1]),
+        limit(4)
+      );
+      const documentSnapshots = await getDocs(previous);
+      documentSnapshots.forEach((doc) => {
+        jobs.push({ ...doc.data(), id: doc.id });
+      });
+      setAllJobs(jobs);
+      setCurrentPage(currentPage - 1);
+    } catch (error) {
+        console.error("Error occured: ", error);
+      }
+    };
+
   return (
     <main className="py-5 px-4">
       <Wrapper>
@@ -15,14 +124,26 @@ function MainContent() {
         </div>
         <div className="relative md:flex md:items-start md:gap-5">
           <FilterJobWidget />
-          <div className="space-y-5 md:grow">
-            <JobCardWidget />
-            <JobCardWidget />
-            <JobCardWidget />
-            <JobCardWidget />
-            <JobCardWidget />
-            <JobCardWidget />
-            <PaginationWidget/>
+          <div className="md:grow">
+            {allJobs.map((job) => (
+              <Link key={job.id} to={`/jobs/${job.jobTitle}/${job.id}`}>
+                <JobCardWidget
+                  image={job.companyLogo}
+                  company={job.company}
+                  position={job.jobTitle}
+                  salary={job.salary}
+                  location={job.location}
+                  jobType={job.jobType}
+                  officeLocation={job.officeLocation}
+                />
+              </Link>
+            ))}
+            <PaginationWidget
+              onNext={getNextJobs}
+              onPrevious={getPreviousJobs}
+              totalPages={totalPage}
+              currentPage={currentPage}
+            />
           </div>
         </div>
       </Wrapper>
