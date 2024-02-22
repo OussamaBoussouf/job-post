@@ -6,7 +6,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import {
   Select,
   SelectContent,
@@ -17,28 +16,61 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
+import { RxCross2 } from "react-icons/rx";
 import Tiptap from "./Tiptap";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { storage } from "@/firebaseStore";
 import { useNavigate } from "react-router-dom";
 
 import { db } from "@/firebaseStore";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import LocationInput from "./LocationInput";
 
-const formSchema = z.object({
-  jobTitle: z.string(),
-  jobType: z.string(),
-  company: z.string(),
-  companyLogo: z.string(),
-  location: z.string(),
-  officeLocation: z.string(),
-  email: z.string().email(),
-  website: z.string().url(),
-  salary: z.string(),
-});
+const formSchema = z
+  .object({
+    jobTitle: z.string().min(1),
+    jobType: z.string(),
+    company: z.string().min(1),
+    companyLogo: z
+      .instanceof(File, "Required")
+      .refine((val) => val.type.startsWith("image/"), {
+        message: "This field accept only image",
+      })
+      .refine((val) => val.size < 1024 * 1024, {
+        message: "Image must be less than 1MB",
+      }),
+    location: z.string(),
+    officeLocation: z.string().optional().default(""),
+    email: z.string().email().optional().or(z.literal("")),
+    website: z.string().url().optional().or(z.literal("")),
+    salary: z
+      .string()
+      .regex(/^\d+$/, "Must be a number")
+      .max(9, "Number can't be longer than 9 digits"),
+    approved: z.boolean().default(false),
+  })
+  .superRefine((val, ctx) => {
+    if (
+      (val.location == "On-site" || val.location == "Hybrid") &&
+      !val.officeLocation
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Location is required for on-site job",
+        path: ["officeLocation"],
+      });
+    }
+    if (!val.email && !val.website) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Email or url is required",
+        path: ["email"],
+      });
+    }
+  });
 
 let textDesc = ``;
 
@@ -49,6 +81,8 @@ function JobForm() {
     resolver: zodResolver(formSchema),
   });
 
+  const { watch, setValue, getValues } = form;
+
   const [file, setFile] = useState({});
   const [isDisabled, setIsDisabled] = useState(false);
 
@@ -56,52 +90,55 @@ function JobForm() {
     textDesc = text;
   };
 
+  // }
   const onSubmit = async (data) => {
-    setIsDisabled(true);
-    const jobRef = collection(db, "jobs");
-    const storageRef = ref(storage, "companies-logo/" + new Date().getTime());
-    const uploadTask = uploadBytesResumable(storageRef, file);
+      setIsDisabled(true);
+      const jobRef = collection(db, "jobs");
+      const storageRef = ref(storage, "companies-logo/" + new Date().getTime());
+      const uploadTask = uploadBytesResumable(storageRef, file);
 
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        console.log("Upload is " + progress + "% done");
-        switch (snapshot.state) {
-          case "paused":
-            console.log("Upload is paused");
-            break;
-          case "running":
-            console.log("Upload is running");
-            break;
-        }
-      },
-      (error) => {
-        console.error("An Error Occured: ", error);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref)
-          .then((downloadURL) => {
-            imageUrl = downloadURL;
-          })
-          .then(() => {
-            const docRef = addDoc(jobRef, {
-              ...data,
-              description: textDesc,
-              companyLogo: imageUrl,
-              approved: false,
-              timeStamp: serverTimestamp(),
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log("Upload is " + progress + "% done");
+          switch (snapshot.state) {
+            case "paused":
+              console.log("Upload is paused");
+              break;
+            case "running":
+              console.log("Upload is running");
+              break;
+          }
+        },
+        (error) => {
+          console.error("An Error Occured: ", error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref)
+            .then((downloadURL) => {
+              imageUrl = downloadURL;
+            })
+            .then(() => {
+              const docRef = addDoc(jobRef, {
+                ...data,
+                website: data.website ? data.website : "",
+                email: data.email ? data.email : "",
+                description: textDesc,
+                companyLogo: imageUrl,
+                timeStamp: serverTimestamp(),
+              });
+              textDesc = ``;
+              imageUrl = "";
+              navigate("/job-submitted");
+            })
+            .catch((error) => {
+              setIsDisabled(false);
+              console.error("An Error occured: ", error);
             });
-            textDesc = ``;
-            navigate("/job-submitted");
-          })
-          .catch((error) => {
-            setIsDisabled(false);
-            console.error("An Error occured: ", error);
-          });
-      }
-    );
+        }
+      );
   };
 
   return (
@@ -179,11 +216,17 @@ function JobForm() {
             <FormField
               control={form.control}
               name="companyLogo"
-              render={({ field }) => (
+              render={({ field: { value, ...fieldValues } }) => (
                 <FormItem className="mb-3">
                   <FormLabel>Company logo</FormLabel>
-                  <FormControl onChange={(e) => setFile(e.target.files[0])}>
-                    <Input type="file" {...field} />
+                  <FormControl
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      fieldValues.onChange(file);
+                      setFile(file);
+                    }}
+                  >
+                    <Input {...fieldValues} accept="image/*" type="file" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -214,21 +257,31 @@ function JobForm() {
                 </FormItem>
               )}
             />
-
+            {/* ALL COUNTRIES */}
             <FormField
               control={form.control}
               name="officeLocation"
               render={({ field }) => (
-                <FormItem className="mb-3">
+                <FormItem className="mb-3 relative">
                   <FormLabel>Office location</FormLabel>
                   <FormControl>
-                    <Input
-                      type="search"
-                      placeholder="Search for a city..."
-                      {...field}
+                    <LocationInput
+                      field={field}
+                      onSelectLocation={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
+                  {watch("officeLocation") && (
+                    <div className="flex">
+                      <button type="button">
+                        <RxCross2
+                          className="text-2xl"
+                          onClick={() => setValue("officeLocation", undefined)}
+                        />
+                      </button>
+                      <span className="mx-2">{watch("officeLocation")}</span>
+                    </div>
+                  )}
                 </FormItem>
               )}
             />
@@ -242,7 +295,11 @@ function JobForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl className="flex-grow">
-                        <Input placeholder="Email" {...field} />
+                        <Input
+                          defaultValue={undefined}
+                          placeholder="Email"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

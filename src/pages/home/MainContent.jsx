@@ -25,10 +25,8 @@ function MainContent() {
   let navigate = useNavigate();
   const [allJobs, setAllJobs] = useState([]);
   const [searchParams] = useSearchParams();
-  const [firstLastJob, setFirstLastJob] = useState({
-    firstJobs: [],
-    lastJobs: [],
-  });
+  const [firstJob, setFirstJob] = useState([]);
+  const [lastJob, setLastJob] = useState([]);
   const [totalPage, setTotalPage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -47,10 +45,8 @@ function MainContent() {
         const firstVisible = documentSnapshots.docs[0];
         setTotalPage(Math.ceil(snapshot.data().count / 4));
         setAllJobs(jobs);
-        setFirstLastJob({
-          firstJobs: [firstVisible],
-          lastJobs: [lastVisible],
-        });
+        setFirstJob([firstVisible]);
+        setLastJob(lastVisible);
       } catch (error) {
         console.error("An Error Occured: ", error);
       }
@@ -65,7 +61,7 @@ function MainContent() {
       const next = query(
         jobsRef,
         orderBy("timeStamp"),
-        startAfter(firstLastJob.lastJobs[firstLastJob.lastJobs.length - 1]),
+        startAfter(lastJob),
         limit(4)
       );
       const documentSnapshots = await getDocs(next);
@@ -76,22 +72,21 @@ function MainContent() {
         documentSnapshots.docs[documentSnapshots.docs.length - 1];
       const firstVisible = documentSnapshots.docs[0];
       setAllJobs(jobs);
+      setLastJob(lastVisible);
+      setFirstJob([...firstJob, firstVisible]);
       setCurrentPage(currentPage + 1);
-      setFirstLastJob({
-        ...firstLastJob,
-        lastJobs: [...firstLastJob.lastJobs, lastVisible],
-        firstJobs: [...firstLastJob.firstJobs, firstVisible],
-      });
       console.log("Next Job");
     } catch (error) {
       console.error("Error occured: ", error);
     }
   };
   
+
+  console.log("RENDER COMPONENT");
+
   const getPreviousJobs = async () => {
-    setFirstLastJob((prev) => {
-      prev.firstJobs.pop();
-      prev.lastJobs.pop();
+    setFirstJob((prev) => {
+      prev.pop();
       return prev
     });
     const jobs = [];
@@ -99,14 +94,17 @@ function MainContent() {
         const previous = query(
         jobsRef,
         orderBy("timeStamp"),
-        startAt(firstLastJob.firstJobs[firstLastJob.firstJobs.length - 1]),
+        startAt(firstJob[firstJob.length - 1]),
         limit(4)
       );
       const documentSnapshots = await getDocs(previous);
+      const lastVisible =
+        documentSnapshots.docs[documentSnapshots.docs.length - 1];
       documentSnapshots.forEach((doc) => {
         jobs.push({ ...doc.data(), id: doc.id });
       });
       setAllJobs(jobs);
+      setLastJob(lastVisible);
       setCurrentPage(currentPage - 1);
     } catch (error) {
         console.error("Error occured: ", error);
