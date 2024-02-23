@@ -76,6 +76,7 @@ let textDesc = ``;
 
 function JobForm() {
   let imageUrl = "";
+  const imageName = new Date().getTime();
   const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -94,7 +95,7 @@ function JobForm() {
   const onSubmit = async (data) => {
       setIsDisabled(true);
       const jobRef = collection(db, "jobs");
-      const storageRef = ref(storage, "companies-logo/" + new Date().getTime());
+      const storageRef = ref(storage, "companies-logo/" + imageName);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on(
@@ -125,9 +126,10 @@ function JobForm() {
                 ...data,
                 website: data.website ? data.website : "",
                 email: data.email ? data.email : "",
+                imageRef: imageName,
                 description: textDesc,
                 companyLogo: imageUrl,
-                timeStamp: serverTimestamp(),
+                createdAt: serverTimestamp(),
               });
               textDesc = ``;
               imageUrl = "";

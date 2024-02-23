@@ -8,7 +8,7 @@ import { useAuth } from "./contexts/authContext";
 import JobDetails from "./pages/job-details/JobDetails";
 
 function App() {
-  const user = useAuth();
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const RequiredAuth = ({ children }) => {
     return user ? children : <Login />;
@@ -30,6 +30,7 @@ function App() {
         />
         <Route path="/job-submitted" element={<Submited />} />
         <Route path="/jobs/:title/:id" element={<JobDetails />}/>
+        <Route path="/admin/jobs/:title/:id" element={<JobDetails />}/>
       </Routes>
     </>
   );
