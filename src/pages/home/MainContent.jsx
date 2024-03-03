@@ -23,33 +23,59 @@ import { Button } from "@/components/ui/button";
 const jobsRef = collection(db, "jobs");
 
 function MainContent() {
-  let navigate = useNavigate();
   const [allJobs, setAllJobs] = useState([]);
-  const [searchParams] = useSearchParams();
-  const [firstJob, setFirstJob] = useState([]);
-  const [lastJob, setLastJob] = useState([]);
+  const [currentJobs, setCurrentJobs] = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [currentPage, setCurrentPage] = useState(searchParams.get("page") || 1);
   const [totalPage, setTotalPage] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  console.log(totalPage);
+  const pageSize = 4;
+
+  const nextPage = () => {
+    const newItems = allJobs.slice(
+      pageSize * parseInt(currentPage),
+      currentJobs.length * (parseInt(currentPage) + 1)
+    );
+    setCurrentJobs(newItems);
+    setSearchParams({ page: parseInt(currentPage) + 1 });
+    setCurrentPage(parseInt(currentPage) + 1);
+  };
+
+  const previousPage = () => {
+    const newItems = allJobs.slice(
+      pageSize * (parseInt(currentPage) - 1) - pageSize,
+      pageSize * (parseInt(currentPage) - 1)
+    );
+    setCurrentJobs(newItems);
+    setCurrentPage(parseInt(currentPage) - 1);
+    if (searchParams.get("page") == 2) setSearchParams({});
+    else setSearchParams({ page: parseInt(currentPage) - 1 });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       const jobs = [];
+      let currentJobs = [];
       try {
-        const first = query(jobsRef, where("approved", "==", true),orderBy("createdAt", "desc"), limit(4));
-        const q = query(jobsRef, where("approved", "==", true));
-        const snapshot = await getCountFromServer(q);
-        const documentSnapshots = await getDocs(first);
+        const queryData = query(
+          jobsRef,
+          where("approved", "==", true),
+          orderBy("createdAt", "desc")
+        );
+        const documentSnapshots = await getDocs(queryData);
         documentSnapshots.forEach((doc) => {
           jobs.push({ ...doc.data(), id: doc.id });
         });
-        const lastVisible =
-          documentSnapshots.docs[documentSnapshots.docs.length - 1];
-        const firstVisible = documentSnapshots.docs[0];
-        setTotalPage(Math.ceil(snapshot.data().count / 4));
         setAllJobs(jobs);
-        setFirstJob([firstVisible]);
-        setLastJob(lastVisible);
+        if (currentPage != 1) {
+          currentJobs = jobs.slice(
+            pageSize * (parseInt(currentPage) - 1),
+            pageSize + pageSize * (parseInt(currentPage) - 1)
+          );
+        } else {
+          currentJobs = jobs.slice(0, pageSize);
+        }
+        setCurrentJobs(currentJobs);
+        setTotalPage(Math.ceil(jobs.length / pageSize));
       } catch (error) {
         console.error("An Error Occured: ", error);
       }
@@ -57,59 +83,6 @@ function MainContent() {
 
     fetchData();
   }, []);
-
-  const getNextJobs = async () => {
-    const jobs = [];
-    try {
-      const next = query(
-        jobsRef,
-        orderBy("createdAt", "desc"),
-        startAfter(lastJob),
-        limit(4)
-      );
-      const documentSnapshots = await getDocs(next);
-      documentSnapshots.forEach((doc) => {
-        jobs.push({ ...doc.data(), id: doc.id });
-      });
-      const lastVisible =
-        documentSnapshots.docs[documentSnapshots.docs.length - 1];
-      const firstVisible = documentSnapshots.docs[0];
-      setAllJobs(jobs);
-      setLastJob(lastVisible);
-      setFirstJob([...firstJob, firstVisible]);
-      setCurrentPage(currentPage + 1);
-      console.log("Next Job");
-    } catch (error) {
-      console.error("Error occured: ", error);
-    }
-  };
-
-  const getPreviousJobs = async () => {
-    setFirstJob((prev) => {
-      prev.pop();
-      return prev;
-    });
-    const jobs = [];
-    try {
-      const previous = query(
-        jobsRef,
-        orderBy("createdAt", "desc"),
-        startAt(firstJob[firstJob.length - 1]),
-        limit(4)
-      );
-      const documentSnapshots = await getDocs(previous);
-      const lastVisible =
-        documentSnapshots.docs[documentSnapshots.docs.length - 1];
-      documentSnapshots.forEach((doc) => {
-        jobs.push({ ...doc.data(), id: doc.id });
-      });
-      setAllJobs(jobs);
-      setLastJob(lastVisible);
-      setCurrentPage(currentPage - 1);
-    } catch (error) {
-      console.error("Error occured: ", error);
-    }
-  };
 
   return (
     <main className="py-5 px-4">
@@ -121,10 +94,10 @@ function MainContent() {
           <p className="text-center text-gray-400">Find your dream job.</p>
         </div>
         <div className="relative md:flex md:items-start md:gap-5">
-          <FilterJobWidget />
+          <FilterJobWidget jobs={allJobs} />
           <div className="md:grow">
-            {allJobs.length != 0 ? (
-              allJobs.map((job) => (
+            {pageSize != 0 ? (
+              currentJobs.map((job) => (
                 <Link key={job.id} to={`/jobs/${job.jobTitle}/${job.id}`}>
                   <JobCardWidget
                     image={job.companyLogo}
@@ -140,14 +113,18 @@ function MainContent() {
             ) : (
               <h2 className="text-2xl">No jobs available yet...</h2>
             )}
-            {totalPage > 1 && (
-              <PaginationWidget
-                onNext={getNextJobs}
-                onPrevious={getPreviousJobs}
-                totalPages={totalPage}
-                currentPage={currentPage}
-              />
-            )}
+            <div className="flex justify-between">
+              {currentPage > 1 && (
+                <Button type="button" onClick={previousPage}>
+                  Previous page
+                </Button>
+              )}
+              {currentPage != totalPage && (
+                <Button type="button" onClick={nextPage}>
+                  Next page
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </Wrapper>
