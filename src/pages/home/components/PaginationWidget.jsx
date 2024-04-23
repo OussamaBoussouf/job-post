@@ -1,32 +1,31 @@
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+
 
 function PaginationWidget({ onNext, onPrevious, totalPages, currentPage }) {
   return (
     <Pagination className="justify-normal">
       <PaginationContent className="w-full justify-between">
-        {currentPage > 1 && (
-          <PaginationItem className="cursor-pointer" onClick={onPrevious}>
+          <PaginationItem className={currentPage > 1 ?"cursor-pointer" : "invisible"} onClick={onPrevious}>
             <PaginationPrevious />
           </PaginationItem>
-        )}
-          <PaginationItem className="mx-auto">
-            <p className="font-semibold">
-              Page {currentPage} of {totalPages}
-            </p>
-          </PaginationItem>
-        {currentPage < totalPages && (
-          <PaginationItem className="cursor-pointer" onClick={onNext}>
-            <PaginationNext/>
-          </PaginationItem>
-        )}
+        <PaginationItem className="mx-auto">
+          <p className="font-semibold">
+            Page {currentPage}/{totalPages}
+          </p>
+        </PaginationItem>
+
+        <PaginationItem
+          className={currentPage != totalPages ?"cursor-pointer" : "invisible"}
+          onClick={onNext}
+        >
+          <PaginationNext />
+        </PaginationItem>
       </PaginationContent>
     </Pagination>
   );
