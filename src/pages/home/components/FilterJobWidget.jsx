@@ -20,19 +20,67 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "../../../components/ui/checkbox";
+import { jobTypes } from "@/lib/job-types";
+import { useEffect, useState } from "react";
+import {
+  collection,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+import { db } from "@/firebaseStore";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-  }),
+  search: z.string().optional(),
+  type: z.string().optional(),
+  location: z.string().optional(),
+  remote: z.boolean().default(false),
 });
 
-function FilterJobWidget() {
-  const form = useForm();
+const docRef = collection(db, "jobs");
+
+function FilterJobWidget({ handleFilter }) {
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+  });
+
+  const [location, setLocation] = useState([]);
+  const [searchParams] = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const q = query(
+      docRef,
+      where("approved", "==", true),
+      where("officeLocation", "!=", "Worldwide")
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const locationList = [];
+      querySnapshot.forEach((doc) => {
+        locationList.push(doc.data().officeLocation);
+      });
+      setLocation(locationList);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const onSubmit = (data) => {
+    console.log(data);
+    handleFilter({ ...data, search: data.search?.trim() });
+  };
 
   return (
     <Form {...form}>
-      <form className="bg-white border-[1px] mb-4 p-3 sticky top-0 rounded-md md:basis-1/4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="bg-white border-[1px] mb-4 p-3 sticky z-10 top-0 rounded-md md:basis-1/4"
+      >
         <FormField
           control={form.control}
           name="search"
@@ -40,7 +88,11 @@ function FilterJobWidget() {
             <FormItem className="mb-3">
               <FormLabel>Search</FormLabel>
               <FormControl>
-                <Input placeholder="Title, company, etc." {...field} />
+                <Input
+                  defaultValue={searchParams.get("search") || null}
+                  placeholder="Title, company, etc."
+                  onChange={field.onChange}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -51,19 +103,22 @@ function FilterJobWidget() {
           render={({ field }) => (
             <FormItem className="mb-5">
               <FormLabel>Type</FormLabel>
-              <Select defaultValue={field.value}>
+              <Select
+                defaultValue={searchParams.get("type") || field.value}
+                onValueChange={field.onChange}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="full-time">Full-time</SelectItem>
-                  <SelectItem value="part-time">Part-time</SelectItem>
-                  <SelectItem value="contract">Contract</SelectItem>
-                  <SelectItem value="temporary">Temporary</SelectItem>
-                  <SelectItem value="internship">Internship</SelectItem>
-                  <SelectItem value="volunteer">Volunteer</SelectItem>
+                  <SelectItem value={null}>All types</SelectItem>
+                  {jobTypes?.map((jobType) => (
+                    <SelectItem key={jobType} value={jobType}>
+                      {jobType}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -71,20 +126,26 @@ function FilterJobWidget() {
         />
         <FormField
           control={form.control}
-          name="type"
+          name="location"
           render={({ field }) => (
             <FormItem className="mb-5">
               <FormLabel>Location</FormLabel>
-              <Select defaultValue={field.value}>
+              <Select
+                defaultValue={searchParams.get("location") || field.value}
+                onValueChange={field.onChange}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="All locations" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="full-time">Full-time</SelectItem>
-                  <SelectItem value="internship">Internship</SelectItem>
-                  <SelectItem value="part-time">Part-time</SelectItem>
+                  <SelectItem value={null}>All location</SelectItem>
+                  {location?.map((locationType) => (
+                    <SelectItem key={locationType} value={locationType}>
+                      {locationType}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormItem>
@@ -92,11 +153,14 @@ function FilterJobWidget() {
         />
         <FormField
           control={form.control}
-          name="remote-jobs"
+          name="remote"
           render={({ field }) => (
             <FormItem className="flex items-center space-x-2 mb-3 space-y-0">
               <FormControl>
-                <Checkbox />
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
               </FormControl>
               <FormLabel className="m-0">Remote jobs</FormLabel>
             </FormItem>

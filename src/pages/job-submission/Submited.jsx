@@ -4,8 +4,6 @@ import Navbar from "../layouts/Navbar";
 function Submited() {
   return (
     <>
-      <Navbar />
-      <hr />
       <div className="my-10">
         <h1 className="text-center font-extrabold text-3xl mb-4 md:text-5xl">
           Job submitted
@@ -14,8 +12,6 @@ function Submited() {
             Your job posting has been submitted and is pending approval.
         </p>
       </div>
-      <hr />
-      <Footer />
     </>
   );
 }
