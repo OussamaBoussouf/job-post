@@ -1,6 +1,5 @@
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -11,28 +10,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useRef, useState } from "react";
+
+
 import { auth } from "@/firebaseStore";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useAuth } from "@/contexts/authContext";
 import { useNavigate } from "react-router-dom";
 import LoadingButton from "@/components/LoadingButton";
-import Admin from "../admin/Admin";
 
-const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8, {
-    message: "The password should be at least 8 characters",
-  }),
-});
+
 
 function Login() {
   const navigate = useNavigate();
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-  });
+  const form = useForm();
 
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -60,7 +50,7 @@ function Login() {
         navigate("/admin");
       })
       .catch((error) => {
-        console.error(error.code);
+        console.log("Error:", error);
         setIsLoading(false);
         setError(true);
       });

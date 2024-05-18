@@ -48,7 +48,6 @@ function FilterJobWidget({ handleFilter }) {
 
   const [location, setLocation] = useState([]);
   const [searchParams] = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const q = query(
@@ -89,7 +88,7 @@ function FilterJobWidget({ handleFilter }) {
               <FormLabel>Search</FormLabel>
               <FormControl>
                 <Input
-                  defaultValue={searchParams.get("search") || null}
+                  defaultValue={field.value}
                   placeholder="Title, company, etc."
                   onChange={field.onChange}
                 />
@@ -104,7 +103,7 @@ function FilterJobWidget({ handleFilter }) {
             <FormItem className="mb-5">
               <FormLabel>Type</FormLabel>
               <Select
-                defaultValue={searchParams.get("type") || field.value}
+                defaultValue={field.value}
                 onValueChange={field.onChange}
               >
                 <FormControl>
@@ -131,7 +130,7 @@ function FilterJobWidget({ handleFilter }) {
             <FormItem className="mb-5">
               <FormLabel>Location</FormLabel>
               <Select
-                defaultValue={searchParams.get("location") || field.value}
+                defaultValue={field.value}
                 onValueChange={field.onChange}
               >
                 <FormControl>
@@ -158,7 +157,7 @@ function FilterJobWidget({ handleFilter }) {
             <FormItem className="flex items-center space-x-2 mb-3 space-y-0">
               <FormControl>
                 <Checkbox
-                  checked={field.value}
+                 checked={field.value}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
