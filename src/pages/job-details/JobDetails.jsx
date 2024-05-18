@@ -24,12 +24,14 @@ import {
 
 function JobDetails() {
   const { id } = useParams();
+  const [isLoading, setIsLoading] = useState(false);
   const [job, setJob] = useState({});
   const [isApproved, setIsApproved] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const containAdmin = location.pathname.includes("admin");
+  console.log(job);
 
   const onApprove = async (jobId) => {
     setIsApproved(true);
@@ -60,11 +62,14 @@ function JobDetails() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const docRef = doc(db, "jobs", id);
         const docSnap = await getDoc(docRef);
         setJob(docSnap.data());
+        setIsLoading(false);
       } catch (error) {
+        setIsLoading(false);
         console.error("An error occured: ", error);
       }
     };
@@ -75,78 +80,88 @@ function JobDetails() {
   return (
     <main className="py-10 px-5">
       <Wrapper>
-        <div className="xsm:flex xsm:justify-between xsm:items-start">
-          <div className="flex items-center gap-3 mb-4">
-            <img
-              src={job.companyLogo}
-              alt={`${job.company} logo`}
-              width="100"
-              height="100"
-              className="rounded-xl object-cover"
-            />
-            <div>
-              <h2 className="font-bold text-xl">{job.jobTitle}</h2>
-              <p className="font-semibold text-green-500 mb-3">{job.company}</p>
-              <ul className="text-gray-500">
-                <li className="flex items-center">
-                  <LuBriefcase className="me-1 text-lg" />
-                  <span>{job.jobType}</span>
-                </li>
-                <li className="flex items-center">
-                  <IoLocationOutline className="me-1 text-lg" />
-                  {job.location}
-                </li>
-                <li className="flex items-center">
-                  <IoEarthOutline className="me-1 text-lg" />
-                  {job.officeLocation}
-                </li>
-                <li className="flex items-center">
-                  <PiCurrencyCircleDollar className="me-1 text-lg" />
-                  {salaryFormat(job.salary)}
-                </li>
-              </ul>
+        {!isLoading ? (
+          <>
+            <div className="xsm:flex xsm:justify-between xsm:items-start">
+              <div className="flex items-center gap-3 mb-4">
+                <img
+                  src={job.companyLogo}
+                  alt={`${job.company} logo`}
+                  width="100"
+                  height="100"
+                  className="rounded-xl object-cover"
+                />
+                <div>
+                  <h2 className="font-bold text-xl">{job.jobTitle}</h2>
+                  <p className="font-semibold text-green-500 mb-3">
+                    {job.company}
+                  </p>
+                  <ul className="text-gray-500">
+                    <li className="flex items-center">
+                      <LuBriefcase className="me-1 text-lg" />
+                      <span>{job.jobType}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <IoLocationOutline className="me-1 text-lg" />
+                      {job.location}
+                    </li>
+                    <li className="flex items-center">
+                      <IoEarthOutline className="me-1 text-lg" />
+                      {job.officeLocation}
+                    </li>
+                    <li className="flex items-center">
+                      <PiCurrencyCircleDollar className="me-1 text-lg" />
+                      {salaryFormat(job.salary)}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              {containAdmin ? (
+                <div className="w-40">
+                  <LoadingButton
+                    onClick={() => onApprove(id)}
+                    btnStyle="bg-green-500 hover:bg-green-600 w-full mb-2"
+                    isLoading={isApproved}
+                  >
+                    Approve
+                  </LoadingButton>
+                  <LoadingButton
+                    onClick={() => onDelete(id, job.imageRef)}
+                    btnStyle="bg-red-500 hover:bg-red-600 w-full"
+                    isLoading={isDeleted}
+                  >
+                    Delete
+                  </LoadingButton>
+                </div>
+              ) : (
+                <AlertDialog>
+                  <AlertDialogTrigger className="bg-black text-white py-2 px-4 text-sm font-semibold rounded-lg">
+                    Apply now
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Applying for a job
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Sorry you cannot apply to this job or any other jobs right now
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
-          </div>
-          {containAdmin ? (
-            <div className="w-40">
-              <LoadingButton
-                onClick={() => onApprove(id)}
-                btnStyle="bg-green-500 hover:bg-green-600 w-full mb-2"
-                isLoading={isApproved}
-              >
-                Approve
-              </LoadingButton>
-              <LoadingButton
-                onClick={() => onDelete(id, job.imageRef)}
-                btnStyle="bg-red-500 hover:bg-red-600 w-full"
-                isLoading={isDeleted}
-              >
-                Delete
-              </LoadingButton>
-            </div>
-          ) : (
-            <AlertDialog>
-              <AlertDialogTrigger className="bg-black text-white py-2 px-4 text-sm font-semibold rounded-lg">Apply now</AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    your account and remove your data from our servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction>Continue</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-        </div>
-        <div
-          dangerouslySetInnerHTML={{ __html: job.description }}
-          className="mt-10"
-        ></div>
+            <div
+              dangerouslySetInnerHTML={{ __html: job.description }}
+              className="mt-10"
+            ></div>
+          </>
+        ) : (
+          <div className="mx-auto border-[5px] rounded-full animate-spin border-b-blue-500 w-14 h-14 "></div>
+        )}
       </Wrapper>
     </main>
   );

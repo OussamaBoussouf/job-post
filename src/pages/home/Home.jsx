@@ -28,7 +28,7 @@ function Home({ jobs, isLoading }) {
       type: searchParams.get("type"),
       location: searchParams.get("location"),
       remote: searchParams.get("remote"),
-      page: type == "next" ? currentPage + 1 : currentPage - 1,
+      page: pageNumber == 1 ? null : pageNumber,
     };
     setCurrentPage(pageNumber);
     updateUrl(q);
