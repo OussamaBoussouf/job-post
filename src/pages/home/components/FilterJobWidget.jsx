@@ -24,13 +24,11 @@ import { jobTypes } from "@/lib/job-types";
 import { useEffect, useState } from "react";
 import {
   collection,
-  getDocs,
   onSnapshot,
   query,
   where,
 } from "firebase/firestore";
 import { db } from "@/firebaseStore";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 const formSchema = z.object({
   search: z.string().optional(),
@@ -47,7 +45,6 @@ function FilterJobWidget({ handleFilter }) {
   });
 
   const [location, setLocation] = useState([]);
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const q = query(
@@ -70,7 +67,6 @@ function FilterJobWidget({ handleFilter }) {
   }, []);
 
   const onSubmit = (data) => {
-    console.log(data);
     handleFilter({ ...data, search: data.search?.trim() });
   };
 

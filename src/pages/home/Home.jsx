@@ -1,9 +1,8 @@
 import FilterJobWidget from "@/pages/home/components/FilterJobWidget";
 import Wrapper from "@/components/Wrapper";
-import JobCardWidget from "./components/JobCardWidget";
 import PaginationWidget from "./components/PaginationWidget";
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import JobList from "./components/JobList";
 
 import CardSkeleton from "@/components/CardSkeleton";
@@ -51,7 +50,6 @@ function Home({ jobs, isLoading }) {
     }
 
     const searchParams = new URLSearchParams(query);
-    console.log(searchParams.toString());
     navigate(`/?${searchParams.toString()}`);
   };
 
@@ -90,9 +88,5 @@ function Home({ jobs, isLoading }) {
     </main>
   );
 }
-
-// /* : filteredJobs.length == 0 && searchParams.size != 0 ? (
-//   <p className="text-lg font-semibold">No job offers match your search</p>
-// ) */
 
 export default Home;

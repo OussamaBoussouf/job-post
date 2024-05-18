@@ -1,15 +1,13 @@
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Home from "./pages/home/Home";
 import JobPost from "./pages/job-post/JobPost";
 import Admin from "./pages/admin/Admin";
 import Login from "./pages/login/Login";
 import Submited from "./pages/job-submission/Submited";
-import { useAuth } from "./contexts/authContext";
 import JobDetails from "./pages/job-details/JobDetails";
 import { useEffect, useState } from "react";
 import {
   collection,
-  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -20,10 +18,6 @@ import PageStructure from "./pages/layouts/PageStructure";
 
 
 function App() {
-  const user = JSON.parse(localStorage.getItem("user"));
-  // const RequiredAuth = ({ children }) => {
-  //   return user ? children : <Login />;
-  // };
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const jobsRef = collection(db, "jobs");

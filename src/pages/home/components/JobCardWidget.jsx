@@ -1,11 +1,3 @@
-import { LuBriefcase } from "react-icons/lu";
-import {
-  IoEarthOutline,
-  IoTimeOutline,
-  IoLocationOutline,
-} from "react-icons/io5";
-import { PiCurrencyCircleDollar } from "react-icons/pi";
-
 
 function JobCardWidget({
   children

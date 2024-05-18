@@ -1,14 +1,12 @@
 import Wrapper from "@/components/Wrapper";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/authContext";
 import { auth } from "@/firebaseStore";
 import { signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { db } from "@/firebaseStore";
 import {
   collection,
-  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -25,7 +23,6 @@ const jobsRef = collection(db, "jobs");
 
 function Admin() {
   const user = JSON.parse(localStorage.getItem("user"));
-  console.log(user);
   const navigate = useNavigate();
   const [unapprovedJobs, setUnapprovedJobs] = useState([]);
 
@@ -64,8 +61,6 @@ function Admin() {
       unsubscribe();
     };
   }, []);
-
-  console.log(unapprovedJobs);
 
   return (
     <main className="py-5 px-4">

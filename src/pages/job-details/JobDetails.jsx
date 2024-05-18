@@ -1,5 +1,4 @@
 import Wrapper from "@/components/Wrapper";
-import { Button } from "@/components/ui/button";
 import { LuBriefcase } from "react-icons/lu";
 import { IoEarthOutline, IoLocationOutline } from "react-icons/io5";
 import { PiCurrencyCircleDollar } from "react-icons/pi";
@@ -12,7 +11,6 @@ import { salaryFormat } from "@/utils/utils";
 import LoadingButton from "@/components/LoadingButton";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -21,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
 
 function JobDetails() {
   const { id } = useParams();
@@ -31,7 +30,7 @@ function JobDetails() {
   const navigate = useNavigate();
   const location = useLocation();
   const containAdmin = location.pathname.includes("admin");
-  console.log(job);
+  const { toast } = useToast();
 
   const onApprove = async (jobId) => {
     setIsApproved(true);
@@ -39,10 +38,17 @@ function JobDetails() {
       await updateDoc(doc(db, "jobs", jobId), {
         approved: true,
       });
+      toast({
+        variant:"success",
+        description: "The job has been approved.",
+      });
       navigate("/admin");
     } catch (error) {
       setIsApproved(false);
-      console.error("An error occured: ", error);
+      toast({
+        variant:"reject",
+        description: "Ops something went wrong we couldn't approved the job.",
+      });
     }
   };
 
@@ -52,11 +58,17 @@ function JobDetails() {
     try {
       await deleteDoc(doc(db, "jobs", jobId));
       await deleteObject(imageRef);
-      console.log("DELETED SUCCESSFULLY");
+      toast({
+        variant:"success",
+        description: "The job has been deleted successfully.",
+      });
       navigate("/admin");
     } catch (error) {
       setIsDeleted(false);
-      console.error("An Error occured: ", error);
+      toast({
+        variant: "reject",
+        description: "Ops something went wrong we couldn't delete the job.",
+      });
     }
   };
 
@@ -126,7 +138,9 @@ function JobDetails() {
                     Approve
                   </LoadingButton>
                   <LoadingButton
-                    onClick={() => onDelete(id, job.imageRef)}
+                    onClick={() => {
+                      onDelete(id, job.imageRef);
+                    }}
                     btnStyle="bg-red-500 hover:bg-red-600 w-full"
                     isLoading={isDeleted}
                   >
@@ -140,11 +154,10 @@ function JobDetails() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Applying for a job
-                      </AlertDialogTitle>
+                      <AlertDialogTitle>Applying for a job</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Sorry you cannot apply to this job or any other jobs right now
+                        Sorry you cannot apply to this job or any other jobs
+                        right now
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

@@ -1,11 +1,10 @@
 import { Input } from "@/components/ui/input";
-import { useState, useMemo } from "react";
-import citiesList from "@/lib/countries";
+import { useState, useMemo, useEffect } from "react";
 
-
-function LocationInput({onSelectLocation}) {
+function LocationInput({ onSelectLocation }) {
   const [locationSearchInput, setLocationSearchInput] = useState("");
   const [hasFocus, setHasFocus] = useState(false);
+  const [countries, setCountries] = useState([]);
   const handleChange = (event) => {
     setLocationSearchInput(event.target.value);
   };
@@ -16,10 +15,21 @@ function LocationInput({onSelectLocation}) {
 
     const searchWords = locationSearchInput.split(" ").join(", ");
 
-    return citiesList.map((city) => `${city.name}, ${city.subcountry}, ${city.country}`)
+    return countries
+      .map((city) => `${city.name}, ${city.subcountry}, ${city.country}`)
       .filter((city) => city.toLowerCase().includes(searchWords.toLowerCase()))
       .slice(0, 5);
   }, [locationSearchInput]);
+
+  useEffect(() => {
+    const fetchData = async () =>{
+      const data = await fetch("/countries.json");
+      const res = await data.json();
+      setCountries(res);
+    }
+
+    fetchData();
+  },[]);
 
 
   return (
@@ -32,14 +42,26 @@ function LocationInput({onSelectLocation}) {
         type="search"
         placeholder="Search for a city..."
       />
-      <div className="absolute top-[100%] w-full">
-        {hasFocus && !cities.length && locationSearchInput && <p className="border-[1px] bg-white text-start p-2">No results found</p>}
-        {hasFocus && cities.map(city => (
-            <button key={city} type="button" onMouseDown={() => {
-              onSelectLocation(city);
-              setLocationSearchInput("");
-            }} className="w-full border-[1px] bg-white text-start p-2">{city}</button>
-        ))}
+      <div className="absolute top-[100%] w-full z-10">
+        {hasFocus && !cities.length && locationSearchInput && (
+          <p className="border-[1px] bg-white text-start p-2">
+            No results found
+          </p>
+        )}
+        {true &&
+          cities.map((city) => (
+            <button
+              key={city}
+              type="button"
+              onMouseDown={() => {
+                onSelectLocation(city);
+                setLocationSearchInput("");
+              }}
+              className="w-full border-[1px] bg-white text-start p-2"
+            >
+              {city}
+            </button>
+          ))}
       </div>
     </div>
   );

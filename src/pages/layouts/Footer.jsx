@@ -1,6 +1,10 @@
 import Wrapper from "@/components/Wrapper";
+import { useToast } from "@/components/ui/use-toast";
 
 function Footer() {
+
+  const {toast} = useToast();
+
   return (
     <footer className="my-5 px-4">
       <Wrapper>

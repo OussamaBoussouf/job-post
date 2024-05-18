@@ -1,6 +1,4 @@
 // src/Tiptap.jsx
-import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useEditor, EditorContent } from "@tiptap/react";
 // import StarterKit from "@tiptap/starter-kit";
 import Document from "@tiptap/extension-document";
