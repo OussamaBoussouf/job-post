@@ -118,7 +118,7 @@ function JobDetails() {
                       {job.location}
                     </li>
                     <li className="flex items-center">
-                      <IoEarthOutline className="me-1 text-lg" />
+                      <IoEarthOutline className="me-1 text-lg shrink-0" />
                       {job.officeLocation}
                     </li>
                     <li className="flex items-center">
@@ -149,7 +149,7 @@ function JobDetails() {
                 </div>
               ) : (
                 <AlertDialog>
-                  <AlertDialogTrigger className="bg-black text-white py-2 px-4 text-sm font-semibold rounded-lg">
+                  <AlertDialogTrigger className="bg-black min-w-fit text-white py-2 px-4 text-sm font-semibold rounded-lg">
                     Apply now
                   </AlertDialogTrigger>
                   <AlertDialogContent>

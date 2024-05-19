@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebaseStore";
 import PageStructure from "./pages/layouts/PageStructure";
+import NotFound from "./pages/not-found/NotFound";
 
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
           <Route path="/admin" element={<Admin />} />
         </Route>
         <Route path="/login" element={<Login />} />
+        <Route path="/*" element={<NotFound />}/>
       </Routes>
     </>
   );
